@@ -1,0 +1,83 @@
+# # The aim of the present paper is to analyze the presence of the inquisitorial imagery in Twitter in order to put into question
+# # some of the classical principles of the «black legend». For that, the author has compiled in a relational database all tweets
+# # that include «Torquemada», «Inquisition» or «Inquisitor» published in Catalan, Spanish, Galician, Basque, English,
+# # French, Italian, Portuguese, German, Dutch and Russian since 2006 until present times.
+
+# From within an OSINT tool:
+
+"'Torquemada' OR 'Torkvemada' OR 'Торквемада' OR 'inquisició' OR 'inquisición' OR 'inkisizioa' OR 'inquisition' OR 'inquisizione'
+OR 'inquisição' OR 'inquisitie' OR 'inkvizitsiya' OR 'инквизиция' OR 'inquisidor' OR 'inquisidora' OR 'inkisidorea' OR 'inquisitor'
+OR 'inquisitore' OR 'inquisiteur' OR 'inkvizitor' OR 'инквизитор'"
+
+"('Torquemada' OR 'Torkvemada' OR 'Торквемада' OR 'inquisició' OR 'inquisición' OR 'inkisizioa' OR 'inquisition' OR 'inquisizione'
+OR 'inquisição' OR 'inquisitie' OR 'inkvizitsiya' OR 'инквизиция' OR 'inquisidor' OR 'inquisidora' OR 'inkisidorea' OR 'inquisitor'
+OR 'inquisitore' OR 'inquisiteur' OR 'inkvizitor' OR 'инквизитор') AND ('Lamela' OR 'Llarena' OR 'Marchena')"
+
+# From within psql
+CREATE DATABASE twitter;
+# Now from command line:
+psql twitter
+
+# From within R, set the directory from which to import .csv files and install the following packages:
+# For example:
+setwd('~/Desktop/file1.csv')
+library(dplyr)
+library(readr)
+library(RPostgreSQL)
+library(DBI)
+
+files <- dir()
+files <- files[grepl('.csv', files, fixed = T)]
+
+# Files should be a vector of paths for the .csv files
+# For example:
+files = c('~/Desktop/file1.csv', '~/Desktop/file2.csv')
+
+# Loop through each file and read into R
+data_list <- list()
+for(i in 1:length(files)){
+  message(i)
+  this_file <- files[i]
+  this_data <- read_csv(this_file)
+  this_data$file_path <- this_file
+  data_list[[i]] <- this_data
+}
+
+# Combine all the data
+tl <- bind_rows(data_list)
+
+# Write the database
+pg = dbDriver("PostgreSQL")
+con = dbConnect(pg, dbname="twitter")
+
+# In the below we are writing to a table named twitter within the 
+# database you created named twitter. Feel free
+dbWriteTable(con,'twitter',tl, row.names=FALSE)
+
+# Read back in R
+dtab = dbGetQuery(con, "select * from twitter")
+
+# disconnect from the database
+dbDisconnect(con)
+
+# # First graph:
+# To elaborate and print a graph of a monthly frequency of tweets that include «Torquemada», «Inquisition» or «Inquisitor»
+# since 2006 until 2019.
+pd <- tl %>% filter(file_path == '~/Desktop/file1.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+plot(pd$date,pd$n,type = "h", col = "black", main = "Title", lwd=2, xlab = "x (month)", ylab = "y (number of tweets)")
+
+# # Second graph:
+# To elaborate and print a graph of a monthly frequency of tweets that include «Torquemada», «Inquisition» or «Inquisitor»
+# and the surnames «Lamela», «Llarena» or «Marchena» since 2006 until 2019.
+pd <- tl %>% filter(file_path == '~/Desktop/file1.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+pd1 <- tl %>% filter(file_path == '~/Desktop/file2.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+pd2 <- tl %>% filter(file_path == '~/Desktop/file3.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+pd3 <- tl %>% filter(file_path == '~/Desktop/file4.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+plot(pd$date,pd$n,type = "h", col = "black", main = "Title", lwd=2, xlab = "x (month)", ylab = "y (number of tweets)")
+points(pd1$date,pd1$n,type = "h", col = "green", lwd=3)
+points(pd2$date,pd2$n,type = "h", col = "orange", lwd=3)
+points(pd3$date,pd3$n,type = "h", col = "blue", lwd=3)
+
+# To elaborate the legend of the second graph:
+legend("topleft", legend = c("Lamela", "Llarena", "Marchena"), col = c("orange", "green", "blue"),
+       pch = c(16), bty = "n", pt.cex = 2, cex = 1,5, text.col = "black", horiz = F , inset = c(0.1, 0.1))
