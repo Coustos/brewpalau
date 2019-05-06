@@ -1,0 +1,20 @@
+# To elaborate and print a graph of a monthly frequency of tweets that include «Torquemada», «Inquisition» or «Inquisitor»
+# since 2006 until 2019.
+pd <- tl %>% filter(file_path == '~/Desktop/file1.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+plot(pd$date,pd$n,type = "h", col = "black", main = "Title", lwd=2, xlab = "x (month)", ylab = "y (number of tweets)")
+
+# To elaborate and print a graph of a monthly frequency of tweets that include «Torquemada», «Inquisition» or «Inquisitor»
+# and the surnames «Lamela», «Llarena» or «Marchena» since 2006 until 2019.
+pd <- tl %>% filter(file_path == '~/Desktop/file1.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+pd1 <- tl %>% filter(file_path == '~/Desktop/file2.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+pd2 <- tl %>% filter(file_path == '~/Desktop/file3.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+pd3 <- tl %>% filter(file_path == '~/Desktop/file4.csv') %>% group_by(date = as.Date(cut(date, 'month'))) %>% tally
+plot(pd$date,pd$n,type = "h", col = "black", main = "Title", lwd=2, xlab = "x (month)", ylab = "y (number of tweets)")
+points(pd1$date,pd1$n,type = "h", col = "green", lwd=3)
+points(pd2$date,pd2$n,type = "h", col = "orange", lwd=3)
+points(pd3$date,pd3$n,type = "h", col = "blue", lwd=3)
+
+# To elaborate the legend of a monthly frequency graph of tweets that include «Torquemada», «Inquisition» or «Inquisitor»
+# and the surnames «Lamela», «Llarena» or «Marchena» since 2006 until 2019.:
+legend("topleft", legend = c("Lamela", "Llarena", "Marchena"), col = c("orange", "green", "blue"),
+pch = c(16), bty = "n", pt.cex = 2, cex = 1,5, text.col = "black", horiz = F , inset = c(0.1, 0.1))
